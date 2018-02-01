@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+
+    <link rel="stylesheet" type="text/css" href="main.css">
+
+    <script src="./node_modules/web3/dist/web3.min.js"></script>
+
+</head>
+<body>
+	<div class="container">
+
+        <h1>Coursetro Instructor</h1>
+        <span id="countIns"></span>
+
+        <h2 id="instructor"></h2>
+		<span id="insTrans"></span>
+		<span id="account"></span>
+        <hr>
+
+        <img id="loader" src="https://loading.io/spinners/double-ring/lg.double-ring-spinner.gif">
+
+        <label for="fName" class="col-lg-2 control-label">First Name</label>
+        <input id="fName" type="text">
+
+        <label for="lName" class="col-lg-2 control-label">Last Name</label>
+        <input id="lName" type="text">
+
+        <label for="age" class="col-lg-2 control-label">Instructor Age</label>
+        <input id="age" type="text">
+
+        <button id="button">Update Instructor</button>
+
+    </div>
+
+    <script src="./jquery-3.2.1.slim.min.js"></script>
+
+    <script>
+        if (typeof web3 !== 'undefined') {
+			console.log('Injected web3');
+            web3 = new Web3(web3.currentProvider);
+        } else {
+            // set the provider you want from Web3.providers
+            web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+        }
+
+		web3.eth.defaultAccount = web3.eth.accounts[0];
+		console.log(web3.eth.defaultAccount);
+
+		$("#account").html(web3.eth.defaultAccount);
+		console.log(web3.eth.defaultAccount);
+
+		var CoursetroContract = web3.eth.contract(
+[
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "instructorAccts",
+		"outputs": [
+			{
+				"name": "",
+				"type": "address"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "getInstructors",
+		"outputs": [
+			{
+				"name": "",
+				"type": "address[]"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "_address",
+				"type": "address"
+			}
+		],
+		"name": "getInstructor",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"name": "",
+				"type": "bytes16"
+			},
+			{
+				"name": "",
+				"type": "bytes16"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "countInstructors",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"name": "fName",
+				"type": "bytes16"
+			},
+			{
+				"indexed": false,
+				"name": "lName",
+				"type": "bytes16"
+			},
+			{
+				"indexed": false,
+				"name": "age",
+				"type": "uint256"
+			}
+		],
+		"name": "instructorInfo",
+		"type": "event"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "_address",
+				"type": "address"
+			},
+			{
+				"name": "_age",
+				"type": "uint256"
+			},
+			{
+				"name": "_fName",
+				"type": "bytes16"
+			},
+			{
+				"name": "_lName",
+				"type": "bytes16"
+			}
+		],
+		"name": "setInstructor",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]
+					);
+		console.log(web3.eth.defaultAccount);
+		
+		var Coursetro = CoursetroContract.at('0xdc21e3d0325a1c549b8f22c420c041e5d8be16e7');
+		console.log(web3.eth.defaultAccount);
+
+		var instructorEvent = Coursetro.instructorInfo({},'latest');
+		console.log(web3.eth.defaultAccount);
+		
+		instructorEvent.watch(function (err, result) {
+    		if (!err) {
+				console.log(result.blockHash);
+				console.log($("#instrans").html());
+      			if (result.blockHash != $("#instrans").html()) 
+           			$("#loader").hide();
+            
+   				$("#insTrans").html('Block hash: ' + result.blockHash);
+        		$("#instructor").html(web3.toAscii(result.args.fName) + ' ' + web3.toAscii(result.args.lName) + ' (' + result.args.age + ' years old)');
+    		} else {
+        		$("#loader").hide();
+    		}
+			console.log(web3.eth.defaultAccount);
+		});		
+		console.log(web3.eth.defaultAccount);
+
+		Coursetro.countInstructors((err, res) => {
+    		if (res)
+        		$("#countIns").html(res.c + ' Instructors'); 
+			console.log(web3.eth.defaultAccount);
+		});
+		console.log(web3.eth.defaultAccount);
+
+		$("#button").click(function() {
+			if(true) {
+			$("#loader").show();
+			console.log(web3.eth.defaultAccount);
+			console.log($("#age").val())
+			console.log($("#fName").val())
+			console.log($("#lName").val())
+
+			Coursetro.setInstructor(web3.eth.defaultAccount, $("#age").val(), $("#fName").val(), $("#lName").val(), (err, res) => {
+				if (err) 
+					$("#loader").hide();
+			});
+			}
+
+			console.log(web3.eth.defaultAccount);
+		});
+		console.log(web3.eth.defaultAccount);
+
+    </script>
+
+</body>
+</html>

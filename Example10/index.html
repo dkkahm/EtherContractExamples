@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<script type="text/javascript" src="./node_modules/web3/dist/web3.min.js"></script>
+	<script type="text/javascript">
+		if (typeof web3 !== 'undefined') {
+			web3 = new Web3(web3.currentProvider);
+		} else {
+			web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+		}
+		web3.eth.defaultAccount = web3.eth.accounts[0];
+
+		var VoteContract = web3.eth.contract(
+[
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "cand",
+				"type": "string"
+			}
+		],
+		"name": "getScore",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "alreadyVoted",
+		"outputs": [
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [],
+		"name": "killContract",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [
+			{
+				"name": "number",
+				"type": "uint8"
+			}
+		],
+		"name": "getCandidateString",
+		"outputs": [
+			{
+				"name": "",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "cand",
+				"type": "string"
+			}
+		],
+		"name": "addCandidate",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "getNumberOfCandidates",
+		"outputs": [
+			{
+				"name": "",
+				"type": "uint8"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": false,
+		"inputs": [
+			{
+				"name": "cand",
+				"type": "string"
+			}
+		],
+		"name": "vote",
+		"outputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"payable": false,
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	}
+]
+			
+		);
+		var vc = VoteContract.at('0x46f12877f7312c83cd4c425b54b0979cf5825901');
+
+        function makeSelect() {
+            var list = web3.eth.accounts;
+            var select = document.getElementById('accounts');
+
+            for(var i = 0; i < list.length; ++ i) {
+                var opt = document.createElement('option');
+                opt.value = list[i];
+                opt.innerHTML = list[i];
+                select.appendChild(opt);
+            }
+        }
+
+		function showList() {
+			var table = document.getElementById("table1");
+			var length = vc.getNumberOfCandidates();
+			for(var i = 0; i < length; ++ i) {
+				var candidate = vc.getCandidateString(i);
+				var row = table.insertRow();
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				cell1.innerHTML = candidate;
+				cell2.innerHTML = vc.getScore(candidate);
+			}
+		}
+
+		function vote() {
+			var candidate = document.getElementById("candidate").value;
+			var account = document.getElementById("accounts").value;
+			web3.eth.defaultAccount = web3.eth.accounts[0];
+
+			if(web3.personal.unlockAccount(account, document.getElementById('pass').value)) {
+				var alreadyVoted = vc.alreadyVoted();
+				console.log(alreadyVoted);
+
+				if(alreadyVoted) {
+					alert('Alreay voted!');
+				} else {
+					vc.vote(candidate, function(err, result) {
+						if(!err) alert('Transaction successful!\n' + result);
+					});
+				}
+			}
+		}
+
+		function addCand() {
+			var candidate = document.getElementById("candidate").value;
+			var account = document.getElementById("accounts").value;
+
+			if(web3.personal.unlockAccount(account, document.getElementById('pass').value)) {
+				vc.addCandidate(candidate, {from:account, gas:2000000}, function(err, result) {
+					if(!err) {
+						alert('Transaction successful!\n' + result);
+					} else {
+						alert('Transaction failed!\n' + err);
+					}
+				});
+			}
+		}
+
+	</script>
+</head>
+<body>
+	<h1>Voting</h1>
+	<div>
+		Account: <select id="accounts"></select>
+		Password: <input type="password" id="pass" value="" />
+	</div><br>
+	<div>
+		<input type="text" id="candidate" value="Candidate"></input>
+		<button onclick="vote()">Vote</button>
+		<button onClick="addCand()">Add Candidate</button>
+	</div>
+	<table id="table1"></table>
+	<script>
+		makeSelect();
+		showList();
+	</script>
+</body>
+</html>
+
